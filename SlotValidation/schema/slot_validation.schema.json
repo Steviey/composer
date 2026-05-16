@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lot247.local/schema/slot_validation.schema.json",
+  "title": "Lot247 SlotValidation Row",
+  "description": "One row of the Lot247 -> SlotValidation Google Sheet tab. Meaning of several fields depends on row_type. See Lot247_Tab_SlotValidation_README.md.",
+  "type": "object",
+  "required": [
+    "target_date",
+    "row_type",
+    "n1", "n2", "n3", "n4", "n5", "n6", "n7",
+    "hits",
+    "n1_validation_rmse", "n2_validation_rmse", "n3_validation_rmse",
+    "n4_validation_rmse", "n5_validation_rmse", "n6_validation_rmse",
+    "n7_validation_rmse",
+    "schema_version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of the drawing (YYYY-MM-DD)."
+    },
+    "row_type": {
+      "type": "string",
+      "enum": ["TIPP", "RESULT"],
+      "description": "TIPP = prediction row, RESULT = actual draw row."
+    },
+    "n1": { "$ref": "#/$defs/slotInt" },
+    "n2": { "$ref": "#/$defs/slotInt" },
+    "n3": { "$ref": "#/$defs/slotInt" },
+    "n4": { "$ref": "#/$defs/slotInt" },
+    "n5": { "$ref": "#/$defs/slotInt" },
+    "n6": { "$ref": "#/$defs/slotInt" },
+    "n7": { "$ref": "#/$defs/slotInt" },
+    "hits": {
+      "oneOf": [
+        { "type": "integer", "minimum": 0, "maximum": 7 },
+        { "type": "string", "enum": ["N/A"] }
+      ],
+      "description": "RESULT rows: number of predicted numbers matching the actual draw. TIPP rows: N/A."
+    },
+    "n1_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n2_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n3_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n4_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n5_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n6_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "n7_validation_rmse": { "$ref": "#/$defs/rmseOrNA" },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semver of the row schema. Bump on structural change."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "row_type": { "const": "TIPP" } } },
+      "then": {
+        "properties": {
+          "hits": { "const": "N/A" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "slotInt": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Integer drawn (RESULT) or predicted (TIPP) for this slot."
+    },
+    "rmseOrNA": {
+      "oneOf": [
+        { "type": "number", "minimum": 0 },
+        { "type": "string", "enum": ["N/A"] }
+      ],
+      "description": "TIPP: best model training validation RMSE for this slot. RESULT: RMSE between predicted and actual for this slot on same target_date."
+    }
+  }
+}
